@@ -28,6 +28,7 @@
 function services_views_retrieve($view_name, $display_id = 'default', $args = array(), $offset = 0, $limit = -1, $return_type = FALSE, $filters = array()) {
   $result = array();
   $view = views_get_view($view_name);
+  $view->get_total_rows = TRUE; // set to allow _total_rows stats in result
 
   // Put all arguments and filters and then execute.
   $view->set_arguments($args, FALSE);
@@ -100,6 +101,8 @@ function services_views_retrieve($view_name, $display_id = 'default', $args = ar
     // We want to keep the result an array.
     $result[] = $view->preview($display_id);
   }
+  drupal_alter('services_views_execute_view', $result, $view);
+
   return $result;
 }
 
@@ -115,6 +118,7 @@ function services_views_execute_view($view_info, $view = NULL, $display_id = NUL
 
     $view = views_get_view($view_name);
     $view->set_arguments($args);
+    $view->get_total_rows = TRUE;
   }
 
   // Avoid translation of the field labels.
