@@ -43,16 +43,21 @@ class views_plugin_display_services extends views_plugin_display {
 
     // Map fields.
     $result = array();
-    foreach ($this->view->result as $item) {
+    foreach ($this->view->field as $field) {
+      $field->pre_render($this->view->result);
+    }
+    foreach ($this->view->result as $row_index => $item) {
       $new_item = new stdClass();
       foreach ($this->view->field as $field) {
-        if (isset($item->{$field->field_alias})) {
+        $field->view->row_index = $row_index;
+        $output = $field->theme($item);
+        if (!empty($output)) {
           // Make sure new keys are alphanumerical, underscore and dash.
-          if (!empty($field->options['label']) && preg_match('/^[0-9a-z_-]*$/', $field->options['label'])) {
-            $new_item->{$field->options['label']} = $item->{$field->field_alias};
+          if (!empty($field->options['label'])) {
+            $new_item->{$field->options['label']} = $output;
           }
           else {
-            $new_item->{$field->field_alias} = $item->{$field->field_alias};
+            $new_item->{$field->field_alias} = $output;
           }
         }
       }

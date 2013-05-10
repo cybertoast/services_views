@@ -71,7 +71,10 @@ function services_views_retrieve($view_name, $display_id = 'default', $args = ar
     }
     elseif ($row_plugin == 'fields') {
       $items = array();
-      foreach ($view->result as $row) {
+      foreach ($view->field as $field){
+        $field->pre_render($view->result);
+      }
+      foreach ($view->result as $row_index => $row) {
         $item = new stdClass();
         foreach ($view->field as $field_id => $field) {
           if (!empty($field->options['label'])) {
@@ -83,6 +86,7 @@ function services_views_retrieve($view_name, $display_id = 'default', $args = ar
           else {
             $field_label = $field_id;
           }
+          $field->view->row_index = $row_index;
           $item->$field_label = $field->theme($row);
         }
         $items[] = $item;
@@ -167,14 +171,26 @@ function services_views_execute_view($view_info, $view = NULL, $display_id = NUL
             }
             // Rendered output.
             elseif (isset($data['#access']) && $data['#access'] == TRUE) {
-              $obj[$idx] = render($data);
+              // $obj[$idx] = render($data);
+              $rdata = $field->theme($row);
+              if (empty($rdata)) {
+               unset($obj[$idx]);
+              } else {
+                $obj[$idx] = $rdata;
+              }
             }
             else {
               $obj[$idx] = array('error' => t('Access denied or format unknown on field.'));
             }
           }
         }
-
+        
+        // Check html_strip property
+        if ( $field->options['alter']['strip_tags'] == '1' ) {
+          // Strip the tags which aren't allowed using strip_tags ( $subject, $preserved_tags ).
+          $obj[$idx] = strip_tags ( $obj[$idx] , $field->options['alter']['preserve_tags'] );
+        }
+        
         // Check cardinality of the field.
         if ($field->field_info['cardinality'] == 1 && count($obj) == 1) {
           $obj = $obj[$idx];
