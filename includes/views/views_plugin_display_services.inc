@@ -43,21 +43,16 @@ class views_plugin_display_services extends views_plugin_display {
 
     // Map fields.
     $result = array();
-    foreach ($this->view->field as $field) {
-      $field->pre_render($this->view->result);
-    }
-    foreach ($this->view->result as $row_index => $item) {
+    foreach ($this->view->result as $item) {
       $new_item = new stdClass();
       foreach ($this->view->field as $field) {
-        $field->view->row_index = $row_index;
-        $output = $field->theme($item);
-        if (!empty($output)) {
+        if (isset($item->{$field->field_alias})) {
           // Make sure new keys are alphanumerical, underscore and dash.
-          if (!empty($field->options['label'])) {
-            $new_item->{$field->options['label']} = $output;
+          if (!empty($field->options['label']) && preg_match('/^[0-9a-z_-]*$/', $field->options['label'])) {
+            $new_item->{$field->options['label']} = $item->{$field->field_alias};
           }
           else {
-            $new_item->{$field->field_alias} = $output;
+            $new_item->{$field->field_alias} = $item->{$field->field_alias};
           }
         }
       }
@@ -74,7 +69,7 @@ class views_plugin_display_services extends views_plugin_display {
   }
 
   function preview() {
-    module_load_include('resource.inc', 'services_views');
+    module_load_include('inc', 'services_views', 'services_views.resource');
     return '<pre>' . var_export(services_views_execute_view(NULL, $this->view, $this->display->id), TRUE) . '</pre>';
   }
 
@@ -139,7 +134,7 @@ class views_plugin_display_services extends views_plugin_display {
       $current_path = $this->get_option('path');
       if ($current_path != $form_state['values']['path']) {
         // We build resources from database to bypass cache.
-        module_load_include('resource_build.inc', 'services');
+        module_load_include('inc', 'services', 'includes/services.resource_build');
         $resources = _services_build_resources();
 
         if (array_key_exists($form_state['values']['path'], $resources)) {

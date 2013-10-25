@@ -19,6 +19,10 @@ function services_views_views_api() {
 function services_views_services_resources() {
   $resources['views'] = array();
 
+  $offset_key = 'offset';
+  if ( array_key_exists('skip', $_REQUEST) && isset($_REQUEST['skip'])) {
+      $offset_key = 'skip';
+  }
   $resources['views']['retrieve'] = array(
     'help' => 'Retrieves a view.',
     'file' => array(
@@ -58,7 +62,7 @@ function services_views_services_resources() {
         'name' => 'offset',
         'type' => 'int',
         'description' => 'The number of the entry for the page begin with.',
-        'source' => array('param' => 'offset'),
+        'source' => array('param' => $offset_key),
         'optional' => TRUE,
         'default value' => 0,
       ),
