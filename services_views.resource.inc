@@ -255,7 +255,8 @@ function services_views_execute_view($view_info, $view = NULL, $display_id = NUL
       if (isset($row->$f_key)) {
         $target_key = $field_key;
         $format = "rendered";
-        if (in_array('type', $field->options)) {
+        // 'Type' is not always set
+        if (isset($field->options['type'])) {
           $format = ($field->options['type'] == 'services') ? 'raw' : 'rendered';
         }
 
@@ -323,7 +324,8 @@ function services_views_execute_view($view_info, $view = NULL, $display_id = NUL
               if (empty($rdata)) {
                 unset($obj[$idx]);
               } else {
-                $obj[$idx] = $rdata;
+                // $obj[$idx] = $rdata;
+                $obj = $rdata;
               }
             } else {
               $obj[$idx] = array('error' => t('Access denied or format unknown on field.'));
@@ -339,11 +341,13 @@ function services_views_execute_view($view_info, $view = NULL, $display_id = NUL
 
         // Check cardinality of the field.
         if ($field->field_info['cardinality'] == 1 && count($obj) == 1) {
-          $obj = $obj[$idx];
+          if (is_array($obj)) {
+            $obj = $obj[$idx];
+          }
         }
 
         // Don't return blank values. However, this may break some front-ends
-        //  if they're expecting all fields to be returned.
+        //  if they're expecting all fields to be returned, so be cautious about this!
         // if ($obj == null) {
         //   unset($output[$index]->$target_key);
         // }
